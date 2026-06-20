@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FinFlow 2.0 — Gestión Financiera</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Fin<span>Flow</span><span class="logo-ver">2.0</span></div>
+      <div class="file-badge" id="file-badge">Sin base de datos cargada</div>
+      <div class="save-status" id="save-status"><span class="save-dot" id="save-dot"></span><span id="save-text">Sin guardar</span></div>
+    </div>
+    <nav class="nav" id="sidebar-nav">
+      <!-- Generado dinámicamente por renderSidebarNav() según el perfil elegido -->
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-file primary" onclick="exportExcel()"><i class="ti ti-download" style="font-size:13px"></i> <span>Exportar base de datos</span></button>
+      <button class="btn-file" onclick="document.getElementById('file-input').click()"><i class="ti ti-upload" style="font-size:13px"></i> <span>Cargar base de datos</span></button>
+      <button class="btn-file" onclick="newFile()"><i class="ti ti-file-plus" style="font-size:13px"></i> <span>Nuevo archivo</span></button>
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="importExcel(event)">
+    </div>
+  </aside>
+  <main class="main">
+    <div id="page-content"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<div class="overlay hidden" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Formulario</span>
+      <button class="icon-btn" onclick="closeModal()" style="font-size:18px;color:var(--text2)"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="modal-confirm">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="help-popover-overlay hidden" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-popover">
+    <div class="help-popover-head">
+      <div class="help-popover-icon"><i class="ti ti-help" id="help-icon"></i></div>
+      <div class="help-popover-title" id="help-title"></div>
+    </div>
+    <div class="help-popover-body" id="help-body"></div>
+    <button class="help-popover-close" onclick="closeHelp()">Entendido</button>
+  </div>
+</div>
+
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/router.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/personal.js"></script>
+<script src="js/trade.js"></script>
+<script src="js/budgets.js"></script>
+<script src="js/goals.js"></script>
+<script src="js/business.js"></script>
+<script src="js/purchases.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/transactions.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/fileio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
