@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FinFlow 2.0 — Gestión Financiera</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#1C2128;--bg4:#21262D;
+  --border:#30363D;--border2:#444C56;
+  --text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --green:#00C896;--green-dim:#0A3D2B;
+  --red:#FF5C6A;--red-dim:#3D0A10;--red-text:#FF8A94;
+  --blue:#4DABF7;--blue-dim:#0A2140;--blue-text:#74C0FC;
+  --amber:#FFB84D;--amber-dim:#3D2A00;--amber-text:#FFD08A;
+  --purple:#B197FC;--purple-dim:#1E1440;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-header{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
+.logo{font-size:18px;font-weight:600;color:var(--text)}.logo span{color:var(--green)}
+.logo-ver{font-size:9px;color:var(--text3);font-family:var(--mono);vertical-align:super;margin-left:2px}
+.file-badge{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.save-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);margin-top:6px}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s}
+.save-dot.saved{background:var(--green)}
+.save-dot.pending{background:var(--amber);animation:pulse 1s infinite}
+.save-dot.unsynced{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--green-dim);color:var(--green);font-weight:500}
+.nav-item i{font-size:15px;width:16px;text-align:center}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.btn-file{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;border:1px solid var(--border);background:none;color:var(--text2);width:100%;text-align:left;font-family:var(--font)}
+.btn-file:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+.btn-file.primary{border-color:var(--green);color:var(--green)}
+.btn-file.primary:hover{background:var(--green-dim)}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:none;color:var(--text2);font-family:var(--font)}
+.btn:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+.btn.success{border-color:var(--green);color:var(--green)}
+.btn.success:hover{background:var(--green-dim)}
+.content{padding:24px;flex:1}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;border-left:3px solid var(--border)}
+.metric-card.green{border-left-color:var(--green)}.metric-card.red{border-left-color:var(--red)}
+.metric-card.blue{border-left-color:var(--blue)}.metric-card.amber{border-left-color:var(--amber)}
+.metric-card.purple{border-left-color:var(--purple)}
+.metric-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:600;font-family:var(--mono);letter-spacing:-1px}
+.metric-value.green{color:var(--green)}.metric-value.red{color:var(--red)}
+.metric-value.blue{color:var(--blue)}.metric-value.amber{color:var(--amber)}.metric-value.purple{color:var(--purple)}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:14px;font-weight:600}
+.tx-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .1s}
+.tx-item:last-child{border-bottom:none}
+.tx-item:hover{background:var(--bg3)}
+.tx-icon{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tx-icon.income{background:var(--green-dim);color:var(--green)}
+.tx-icon.expense{background:var(--red-dim);color:var(--red)}
+.tx-icon.trade{background:var(--purple-dim);color:var(--purple)}
+.tx-info{flex:1;min-width:0}
+.tx-desc{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.tx-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-right:4px;font-weight:500}
+.tag-personal{background:var(--blue-dim);color:var(--blue-text)}
+.tag-negocio{background:var(--amber-dim);color:var(--amber-text)}
+.tag-trade{background:var(--purple-dim);color:var(--purple)}
+.tx-amount{font-family:var(--mono);font-size:14px;font-weight:600}
+.tx-amount.pos{color:var(--green)}.tx-amount.neg{color:var(--red)}
+.tx-date{font-size:11px;color:var(--text3);text-align:right;margin-top:2px}
+.tx-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.tx-item:hover .tx-actions{opacity:1}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:4px;transition:all .15s;font-size:14px}
+.icon-btn:hover{color:var(--red);background:var(--red-dim)}
+.icon-btn.edit:hover{color:var(--blue);background:var(--blue-dim)}
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty i{font-size:40px;margin-bottom:12px;display:block;opacity:.4}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-xl);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-footer{padding:0 20px 20px;display:flex;gap:8px;justify-content:flex-end}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text2);font-weight:500;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green)}
+.field select option{background:var(--bg3)}
+.field textarea{resize:vertical;min-height:70px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.4}
+.field-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:14px}
+.field-toggle-label{font-size:12px;font-weight:500;color:var(--text)}
+.field-toggle-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.switch{position:relative;width:38px;height:21px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:21px;transition:.2s}
+.switch-slider:before{content:"";position:absolute;width:15px;height:15px;left:3px;bottom:3px;background:var(--text2);border-radius:50%;transition:.2s}
+.switch input:checked+.switch-slider{background:var(--green-dim);border:1px solid var(--green)}
+.switch input:checked+.switch-slider:before{transform:translateX(17px);background:var(--green)}
+.btn-primary{background:var(--green);color:#000;border:none;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn-primary:hover{opacity:.9}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--text2);padding:9px 18px;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:var(--font)}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--text3);margin-bottom:16px}
+.chart-wrap{position:relative}
+.report-filters{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.filter-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 12px;color:var(--text);font-family:var(--font);font-size:12px;outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--green)}
+.filter-label{font-size:12px;color:var(--text3)}
+.cat-table{width:100%;border-collapse:collapse}
+.cat-table th{text-align:left;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.cat-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.cat-table tr:last-child td{border-bottom:none}
+.cat-table tr:hover td{background:var(--bg3)}
+.cat-bar-wrap{display:flex;align-items:center;gap:8px}
+.cat-bar-bg{flex:1;height:4px;background:var(--border);border-radius:2px;max-width:120px}
+.cat-bar-fill{height:4px;border-radius:2px;background:var(--red)}
+.cat-bar-fill.green{background:var(--green)}
+.tabs{display:flex;gap:2px;background:var(--bg3);border-radius:var(--radius);padding:3px;margin-bottom:20px;width:fit-content}
+.tab{padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all .15s;border:none;background:none;font-family:var(--font)}
+.tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.inv-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;transition:border-color .15s}
+.inv-card:hover{border-color:var(--border2)}
+.inv-name{font-size:13px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-stock{font-family:var(--mono);font-size:22px;font-weight:600}
+.inv-stock.low{color:var(--red)}.inv-stock.ok{color:var(--green)}
+.inv-meta{font-size:11px;color:var(--text3);margin-top:4px}
+.inv-price{font-family:var(--mono);font-size:12px;color:var(--amber-text);margin-top:6px}
+.inv-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.inv-card-actions .icon-btn{flex:1;text-align:center;border:1px solid var(--border);border-radius:6px}
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:40px}
+.welcome-icon{font-size:56px;margin-bottom:20px;opacity:.6}
+.welcome h2{font-size:22px;font-weight:600;margin-bottom:8px}
+.welcome p{color:var(--text2);max-width:380px;font-size:14px;line-height:1.6;margin-bottom:20px}
+.welcome-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.w-btn{padding:11px 22px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.w-btn.primary{background:var(--green);color:#000;border:none}
+.w-btn.primary:hover{opacity:.9}
+.w-btn.secondary{background:none;border:1px solid var(--border2);color:var(--text2)}
+.w-btn.secondary:hover{color:var(--text);border-color:var(--text3)}
+.welcome-resume{background:var(--bg2);border:1px solid var(--green);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:24px;max-width:380px;text-align:left}
+.welcome-resume-title{font-size:12px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.welcome-resume-text{font-size:12px;color:var(--text2);line-height:1.5}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-size:13px;z-index:999;display:none;align-items:center;gap:10px;max-width:320px}
+.toast.show{display:flex}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}.toast.info{border-left:3px solid var(--blue)}
+.trend{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;display:inline-block}
+.trend.up{background:var(--green-dim);color:var(--green)}
+.trend.down{background:var(--red-dim);color:var(--red)}
+.trend.flat{background:var(--bg4);color:var(--text3)}
+.hidden{display:none!important}
+input[type="file"]{display:none}
+/* Presupuestos */
+.budget-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px}
+.budget-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.budget-cat{font-size:13px;font-weight:600}
+.budget-nums{font-family:var(--mono);font-size:12px;color:var(--text3)}
+.budget-bar-bg{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.budget-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.budget-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3)}
+/* Metas de ahorro */
+.goal-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative}
+.goal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.goal-name{font-size:13px;font-weight:600}
+.goal-deadline{font-size:11px;color:var(--text3);margin-top:2px}
+.goal-amt{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--green)}
+.goal-target{font-size:11px;color:var(--text3)}
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.goal-actions{display:flex;gap:6px;margin-top:10px}
+.goal-actions .btn{flex:1;padding:6px;font-size:11px;text-align:center}
+/* Cuentas */
+.account-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;transition:all .15s;background:var(--bg3)}
+.account-chip.active{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.account-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+@media (max-width:900px){
+  .charts-grid{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .sidebar{width:64px;min-width:64px}
+  .sidebar .nav-section,.sidebar .logo,.sidebar .file-badge,.sidebar .save-status,.nav-item span,.btn-file span{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .btn-file{justify-content:center;padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Fin<span>Flow</span><span class="logo-ver">2.0</span></div>
+      <div class="file-badge" id="file-badge">Sin archivo cargado</div>
+      <div class="save-status" id="save-status"><span class="save-dot" id="save-dot"></span><span id="save-text">Sin guardar</span></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">General</div>
+      <button class="nav-item active" onclick="navigate('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="nav-item" onclick="navigate('reports')"><i class="ti ti-chart-bar"></i> Reportes</button>
+      <div class="nav-section">Personal</div>
+      <button class="nav-item" onclick="navigate('personal')"><i class="ti ti-wallet"></i> Ingresos y Gastos</button>
+      <button class="nav-item" onclick="navigate('trade')"><i class="ti ti-trending-up"></i> Capital / Trading</button>
+      <button class="nav-item" onclick="navigate('budgets')"><i class="ti ti-chart-pie"></i> Presupuestos</button>
+      <button class="nav-item" onclick="navigate('goals')"><i class="ti ti-target-arrow"></i> Metas de ahorro</button>
+      <div class="nav-section">Negocio</div>
+      <button class="nav-item" onclick="navigate('business')"><i class="ti ti-building-store"></i> Ventas y Gastos</button>
+      <button class="nav-item" onclick="navigate('purchases')"><i class="ti ti-shopping-cart"></i> Compras</button>
+      <button class="nav-item" onclick="navigate('inventory')"><i class="ti ti-package"></i> Inventario</button>
+      <div class="nav-section">Sistema</div>
+      <button class="nav-item" onclick="navigate('settings')"><i class="ti ti-settings"></i> Configuración</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-file primary" onclick="exportExcel()"><i class="ti ti-download" style="font-size:13px"></i> <span>Exportar a Excel</span></button>
+      <button class="btn-file" onclick="document.getElementById('file-input').click()"><i class="ti ti-upload" style="font-size:13px"></i> <span>Cargar archivo</span></button>
+      <button class="btn-file" onclick="newFile()"><i class="ti ti-file-plus" style="font-size:13px"></i> <span>Nuevo archivo</span></button>
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="importExcel(event)">
+    </div>
+  </aside>
+  <main class="main">
+    <div id="page-content"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<div class="overlay hidden" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Formulario</span>
+      <button class="icon-btn" onclick="closeModal()" style="font-size:18px;color:var(--text2)"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="modal-confirm">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   FinFlow 2.0 — Lógica de aplicación
+   Persistencia dual: localStorage (autoguardado silencioso) + Excel (export manual, fuente de verdad portátil)
+   ============================================================ */
+
+const CATS_INCOME=['Salario','Freelance','Inversiones','Negocio','Renta','Otros ingresos'];
+const CATS_EXPENSE=['Alimentación','Hogar','Transporte','Salud','Educación','Entretenimiento','Ropa','Servicios','Deudas','Familia','Otros gastos'];
+const CATS_BUSINESS_SALE=['Venta de productos','Venta de servicios'];
+const CATS_BUSINESS_EXP=['Gasto operativo','Publicidad','Nómina','Logística','Impuestos','Renta del local','Otros'];
+const CATS_PURCHASE=['Materia prima','Insumos','Mercancía para reventa','Equipo','Mantenimiento','Otros'];
+const CATS_TRADE=['Compra','Venta','Ganancia','Pérdida','Comisión','Depósito','Retiro'];
+const PALETTE=['#00C896','#4DABF7','#FFB84D','#B197FC','#FF5C6A','#20C997','#74C0FC','#FFA94D','#DA77F2','#FF8787','#63E6BE','#A9E34B'];
+const LS_KEY='finflow_v2_autosave';
+
+let state=defaultState();
+let _charts={};
+let _saveTimer=null;
+let _editingTxId=null;
+let _editingInvId=null;
+let _editingGoalId=null;
+
+function defaultState(){
+  return {
+    fileName:null,
+    currentPage:'welcome',
+    accounts:[{id:'default',name:'General'}],
+    activeAccount:'default',
+    transactions:[],     // {id,module,type,amount,date,desc,category,notes,accountId,linkInv,invId,invQty}
+    inventory:[],        // {id,name,stock,minStock,price,unit,desc}
+    budgets:[],          // {id,category,limit,month}
+    goals:[],            // {id,name,target,current,deadline}
+    settings:{
+      linkSalesToInventory:true,   // toggle global, editable en Configuración
+      lastSavedExcelAt:null
+    }
+  };
+}
+
+/* ---------- Utilidades ---------- */
+function destroyChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[id];}}
+function fmt(n){return '$'+Math.abs(Number(n)||0).toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtShort(n){n=Math.abs(Number(n)||0);if(n>=1000000)return '$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return '$'+(n/1000).toFixed(1)+'K';return fmt(n);}
+function getThisMonth(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+function getMonthLabel(m){return['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][m];}
+function filterMonth(txs,ym){return txs.filter(t=>t.date&&t.date.startsWith(ym));}
+function sum(txs,type){return txs.filter(t=>t.type===type).reduce((a,t)=>a+Number(t.amount||0),0);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function getLastNMonths(n){
+  const now=new Date(),res=[];
+  for(let i=n-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);res.push({label:getMonthLabel(d.getMonth()),ym:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`});}
+  return res;
+}
+function activeTxs(list){return list.filter(t=>t.accountId===state.activeAccount||!t.accountId);}
+
+/* ---------- Persistencia: autoguardado en localStorage ---------- */
+function scheduleAutosave(){
+  setSaveDot('pending','Guardando…');
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    try{
+      localStorage.setItem(LS_KEY,JSON.stringify(state));
+      setSaveDot('saved','Guardado en este navegador');
+    }catch(e){
+      setSaveDot('unsynced','No se pudo guardar localmente');
+    }
+  },500);
+}
+function setSaveDot(cls,text){
+  const dot=document.getElementById('save-dot');
+  const txt=document.getElementById('save-text');
+  if(!dot)return;
+  dot.className='save-dot '+cls;
+  txt.textContent=text;
+}
+function loadAutosave(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return null;
+    const parsed=JSON.parse(raw);
+    if(!parsed||!Array.isArray(parsed.transactions))return null;
+    return parsed;
+  }catch(e){return null;}
+}
+function clearAutosave(){
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+}
+
+/* ---------- Render router ---------- */
+function navigate(page){
+  state.currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.getAttribute('onclick')===`navigate('${page}')`));
+  Object.keys(_charts).forEach(destroyChart);
+  renderPage();
+  scheduleAutosave();
+}
+
+function renderPage(){
+  const p=state.currentPage;
+  if(p==='welcome'){renderWelcome();return;}
+  const titles={dashboard:'Dashboard',reports:'Reportes y Análisis',personal:'Ingresos y Gastos',trade:'Capital / Trading',budgets:'Presupuestos',goals:'Metas de ahorro',business:'Ventas y Gastos del Negocio',purchases:'Compras',inventory:'Inventario',settings:'Configuración'};
+  const subs={dashboard:'Resumen financiero general',reports:'Gráficos, tendencias y análisis detallado',personal:'Gestión personal y familiar',trade:'Seguimiento de capital e inversiones',budgets:'Límites de gasto por categoría',goals:'Objetivos de ahorro con seguimiento de progreso',business:'Ingresos por ventas y gastos operativos',purchases:'Compras de insumos y mercancía',inventory:'Control de stock de productos',settings:'Cuentas, vínculos e información del sistema'};
+  document.getElementById('page-content').innerHTML=`
+    <div class="topbar">
+      <div><div class="topbar-title">${titles[p]||p}</div><div class="topbar-sub">${subs[p]||''}</div></div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content" id="page-body"></div>
+  `;
+  if(p==='dashboard')renderDashboard();
+  else if(p==='reports')renderReports();
+  else if(p==='personal')renderPersonal();
+  else if(p==='trade')renderTrade();
+  else if(p==='budgets')renderBudgets();
+  else if(p==='goals')renderGoals();
+  else if(p==='business')renderBusiness();
+  else if(p==='purchases')renderPurchases();
+  else if(p==='inventory')renderInventory();
+  else if(p==='settings')renderSettings();
+}
+
+function renderWelcome(){
+  const auto=loadAutosave();
+  const hasResume=auto&&auto.transactions&&auto.transactions.length>0;
+  document.getElementById('page-content').innerHTML=`
+    <div class="welcome">
+      <div class="welcome-icon"><i class="ti ti-chart-line"></i></div>
+      <h2>Bienvenido a FinFlow 2.0</h2>
+      <p>Gestiona tus finanzas personales y de negocio con facilidad. Crea un nuevo archivo, carga uno existente, o continúa donde lo dejaste.</p>
+      ${hasResume?`
+        <div class="welcome-resume">
+          <div class="welcome-resume-title"><i class="ti ti-history"></i> Sesión anterior encontrada</div>
+          <div class="welcome-resume-text">Este navegador guardó automáticamente <b>${auto.transactions.length}</b> movimientos${auto.fileName?` del archivo <b>${auto.fileName}</b>`:''}. Esto es un respaldo local, no tu archivo Excel.</div>
+        </div>
+      `:''}
+      <div class="welcome-actions">
+        ${hasResume?`<button class="w-btn primary" onclick="resumeAutosave()"><i class="ti ti-player-play"></i> Continuar sesión</button>`:''}
+        <button class="w-btn ${hasResume?'secondary':'primary'}" onclick="newFile()"><i class="ti ti-file-plus"></i> Nuevo archivo</button>
+        <button class="w-btn secondary" onclick="document.getElementById('file-input').click()"><i class="ti ti-upload"></i> Cargar Excel</button>
+      </div>
+    </div>
+  `;
+}
+
+function resumeAutosave(){
+  const auto=loadAutosave();
+  if(!auto)return;
+  state=Object.assign(defaultState(),auto);
+  state.currentPage='dashboard';
+  document.getElementById('file-badge').textContent=state.fileName||'Sesión recuperada (sin nombre de archivo)';
+  navigate('dashboard');
+  setSaveDot('saved','Guardado en este navegador');
+  showToast('Sesión anterior recuperada');
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const ym=getThisMonth();
+  const all=activeTxs(state.transactions);
+  const pm=filterMonth(all.filter(t=>t.module==='personal'),ym);
+  const bm=filterMonth(all.filter(t=>t.module==='business'),ym);
+  const tm=filterMonth(all.filter(t=>t.module==='trade'),ym);
+  const pu=filterMonth(all.filter(t=>t.module==='purchases'),ym);
+  const totalInc=sum(pm,'income')+sum(bm,'income')+sum(tm,'income');
+  const totalExp=sum(pm,'expense')+sum(bm,'expense')+sum(tm,'expense')+sum(pu,'expense');
+  const balance=totalInc-totalExp;
+  const months=getLastNMonths(6);
+  const recent=[...all].sort((a,b)=>b.date>a.date?1:-1).slice(0,5);
+  const lowStock=state.inventory.filter(i=>Number(i.stock)<=Number(i.minStock||0)).length;
+  document.getElementById('page-body').innerHTML=`
+    ${renderAccountBar()}
+    <div class="metrics">
+      <div class="metric-card green"><div class="metric-label">Ingresos del mes</div><div class="metric-value green">${fmtShort(totalInc)}</div><div class="metric-sub">Todos los módulos</div></div>
+      <div class="metric-card red"><div class="metric-label">Gastos del mes</div><div class="metric-value red">${fmtShort(totalExp)}</div><div class="metric-sub">Incluye compras</div></div>
+      <div class="metric-card ${balance>=0?'green':'red'}"><div class="metric-label">Balance neto</div><div class="metric-value ${balance>=0?'green':'red'}">${balance>=0?'':'-'}${fmtShort(Math.abs(balance))}</div><div class="metric-sub">Mes actual</div></div>
+      <div class="metric-card ${lowStock>0?'amber':'blue'}"><div class="metric-label">Stock crítico</div><div class="metric-value ${lowStock>0?'amber':'blue'}">${lowStock}</div><div class="metric-sub">Productos bajo mínimo</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="chart-title">Flujo mensual — últimos 6 meses</div>
+        <div class="chart-sub">Ingresos vs gastos consolidados</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="ch-flow"></canvas></div>
+      </div>
+    </div>
+    <div class="section-header"><div class="section-title">Movimientos recientes</div><button class="btn success" onclick="navigate('reports')">Ver reportes completos</button></div>
+    <div class="tx-list">${recent.length?recent.map(txRow).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos aún. Crea un archivo nuevo para empezar.</p></div>'}</div>
+  `;
+  setTimeout(()=>{
+    const labels=months.map(m=>m.label);
+    const incData=months.map(m=>sum(filterMonth(all,m.ym),'income'));
+    const expData=months.map(m=>sum(filterMonth(all,m.ym),'expense'));
+    _charts['ch-flow']=new Chart(document.getElementById('ch-flow'),{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Ingresos',data:incData,backgroundColor:'rgba(0,200,150,.25)',borderColor:'#00C896',borderWidth:2,borderRadius:4},
+        {label:'Gastos',data:expData,backgroundColor:'rgba(255,92,106,.2)',borderColor:'#FF5C6A',borderWidth:2,borderRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8B949E',font:{size:11}}},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{x:{ticks:{color:'#6E7681',font:{size:11}},grid:{color:'#21262D'}},y:{ticks:{color:'#6E7681',font:{size:11},callback:v=>fmtShort(v)},grid:{color:'#21262D'}}}}
+    });
+  },100);
+}
+
+/* ---------- Cuentas ---------- */
+function renderAccountBar(){
+  if(state.accounts.length<=1)return '';
+  return `<div class="account-bar">
+    <span class="filter-label">Cuenta:</span>
+    ${state.accounts.map(a=>`<span class="account-chip ${a.id===state.activeAccount?'active':''}" onclick="switchAccount('${a.id}')">${a.id===state.activeAccount?'<i class=\"ti ti-check\"></i> ':''}${a.name}</span>`).join('')}
+  </div>`;
+}
+function switchAccount(id){state.activeAccount=id;renderPage();scheduleAutosave();}
+
+/* ---------- Reportes ---------- */
+function renderReports(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="exportReportCSV()"><i class="ti ti-file-spreadsheet"></i> Exportar reporte</button>`;
+  const months=getLastNMonths(12);
+  const curMonth=getThisMonth();
+  const selOpts=months.map(m=>`<option value="${m.ym}" ${m.ym===curMonth?'selected':''}>${m.label} ${m.ym.split('-')[0]}</option>`).reverse().join('');
+  document.getElementById('page-body').innerHTML=`
+    <div class="report-filters">
+      <span class="filter-label">Período:</span>
+      <select class="filter-select" id="rep-month" onchange="refreshReports()">${selOpts}<option value="all">Todos los meses</option></select>
+      <select class="filter-select" id="rep-module" onchange="refreshReports()">
+        <option value="all">Todos los módulos</option>
+        <option value="personal">Personal</option>
+        <option value="business">Negocio</option>
+        <option value="purchases">Compras</option>
+        <option value="trade">Trading</option>
+      </select>
+    </div>
+    <div id="rep-metrics" class="metrics" style="margin-bottom:20px"></div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Gastos por categoría</div>
+        <div class="chart-sub">Distribución proporcional</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="ch-donut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Ingresos por categoría</div>
+        <div class="chart-sub">Distribución proporcional</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="ch-donut-inc"></canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-title">Evolución mensual</div>
+        <div class="chart-sub">Tendencia de ingresos y gastos — últimos 6 meses</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="ch-line"></canvas></div>
+      </div>
+    </div>
+    <div class="section-header"><div class="section-title">Top gastos por categoría</div></div>
+    <div class="tx-list" id="rep-cat-table"></div>
+    <div style="height:24px"></div>
+    <div class="section-header"><div class="section-title">Movimientos del período</div></div>
+    <div class="tx-list" id="rep-tx-list"></div>
+  `;
+  refreshReports();
+}
+
+function refreshReports(){
+  const ym=document.getElementById('rep-month').value;
+  const mod=document.getElementById('rep-module').value;
+  let txs=activeTxs(state.transactions);
+  if(mod!=='all')txs=txs.filter(t=>t.module===mod);
+  if(ym!=='all')txs=txs.filter(t=>t.date&&t.date.startsWith(ym));
+  const inc=sum(txs,'income'),exp=sum(txs,'expense'),bal=inc-exp;
+  const expTxCount=txs.filter(t=>t.type==='expense').length;
+  const avgExp=expTxCount?exp/expTxCount:0;
+  let trendHtml='';
+  if(ym!=='all'){
+    const [y,m]=ym.split('-').map(Number);
+    const prevD=new Date(y,m-2,1);
+    const prevYm=`${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
+    let prev=activeTxs(state.transactions);
+    if(mod!=='all')prev=prev.filter(t=>t.module===mod);
+    prev=prev.filter(t=>t.date&&t.date.startsWith(prevYm));
+    if(prev.length){
+      const diff=bal-(sum(prev,'income')-sum(prev,'expense'));
+      const cls=diff>0?'up':diff<0?'down':'flat';
+      trendHtml=`<span class="trend ${cls}">${diff>0?'+':''}${fmtShort(diff)} vs mes anterior</span>`;
+    }
+  }
+  document.getElementById('rep-metrics').innerHTML=`
+    <div class="metric-card green"><div class="metric-label">Ingresos</div><div class="metric-value green">${fmtShort(inc)}</div></div>
+    <div class="metric-card red"><div class="metric-label">Gastos</div><div class="metric-value red">${fmtShort(exp)}</div></div>
+    <div class="metric-card ${bal>=0?'green':'red'}"><div class="metric-label">Balance</div><div class="metric-value ${bal>=0?'green':'red'}">${bal>=0?'':'-'}${fmtShort(Math.abs(bal))}</div>${trendHtml?`<div class="metric-sub" style="margin-top:6px">${trendHtml}</div>`:''}</div>
+    <div class="metric-card amber"><div class="metric-label">Gasto promedio</div><div class="metric-value amber">${fmtShort(avgExp)}</div><div class="metric-sub">Por transacción</div></div>
+    <div class="metric-card purple"><div class="metric-label">Operaciones</div><div class="metric-value purple">${txs.length}</div></div>
+  `;
+  ['ch-donut','ch-donut-inc','ch-line'].forEach(destroyChart);
+  const expTxs=txs.filter(t=>t.type==='expense');
+  const catExpMap={};
+  expTxs.forEach(t=>{const c=t.category||'Sin categoría';catExpMap[c]=(catExpMap[c]||0)+Number(t.amount||0);});
+  const catExpLabels=Object.keys(catExpMap).sort((a,b)=>catExpMap[b]-catExpMap[a]);
+  setTimeout(()=>{
+    if(catExpLabels.length){
+      _charts['ch-donut']=new Chart(document.getElementById('ch-donut'),{
+        type:'doughnut',
+        data:{labels:catExpLabels,datasets:[{data:catExpLabels.map(c=>catExpMap[c]),backgroundColor:PALETTE.slice(0,catExpLabels.length).map(c=>c+'CC'),borderColor:PALETTE.slice(0,catExpLabels.length),borderWidth:1.5,hoverOffset:6}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{color:'#8B949E',font:{size:11},boxWidth:10,padding:8}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)}`}}}}
+      });
+    } else {
+      const el=document.getElementById('ch-donut');
+      if(el)el.parentElement.innerHTML='<div class="empty" style="padding:20px"><p>Sin gastos en este período</p></div>';
+    }
+    const incTxs=txs.filter(t=>t.type==='income');
+    const catIncMap={};
+    incTxs.forEach(t=>{const c=t.category||'Sin categoría';catIncMap[c]=(catIncMap[c]||0)+Number(t.amount||0);});
+    const catIncLabels=Object.keys(catIncMap).sort((a,b)=>catIncMap[b]-catIncMap[a]);
+    if(catIncLabels.length){
+      _charts['ch-donut-inc']=new Chart(document.getElementById('ch-donut-inc'),{
+        type:'doughnut',
+        data:{labels:catIncLabels,datasets:[{data:catIncLabels.map(c=>catIncMap[c]),backgroundColor:PALETTE.map(c=>c+'CC'),borderColor:PALETTE,borderWidth:1.5,hoverOffset:6}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{color:'#8B949E',font:{size:11},boxWidth:10,padding:8}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)}`}}}}
+      });
+    } else {
+      const el=document.getElementById('ch-donut-inc');
+      if(el)el.parentElement.innerHTML='<div class="empty" style="padding:20px"><p>Sin ingresos en este período</p></div>';
+    }
+    const months6=getLastNMonths(6);
+    let base=activeTxs(state.transactions);
+    if(mod!=='all')base=base.filter(t=>t.module===mod);
+    _charts['ch-line']=new Chart(document.getElementById('ch-line'),{
+      type:'line',
+      data:{labels:months6.map(m=>m.label),datasets:[
+        {label:'Ingresos',data:months6.map(m=>sum(filterMonth(base,m.ym),'income')),borderColor:'#00C896',backgroundColor:'rgba(0,200,150,.08)',fill:true,tension:.35,pointBackgroundColor:'#00C896',pointRadius:4},
+        {label:'Gastos',data:months6.map(m=>sum(filterMonth(base,m.ym),'expense')),borderColor:'#FF5C6A',backgroundColor:'rgba(255,92,106,.08)',fill:true,tension:.35,pointBackgroundColor:'#FF5C6A',pointRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8B949E',font:{size:11}}},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{x:{ticks:{color:'#6E7681',font:{size:11}},grid:{color:'#21262D'}},y:{ticks:{color:'#6E7681',font:{size:11},callback:v=>fmtShort(v)},grid:{color:'#21262D'}}}}
+    });
+  },80);
+  const maxCatVal=catExpLabels.length?catExpMap[catExpLabels[0]]:1;
+  const totalExp2=catExpLabels.reduce((a,c)=>a+catExpMap[c],0)||1;
+  document.getElementById('rep-cat-table').innerHTML=catExpLabels.length?`
+    <table class="cat-table">
+      <thead><tr><th>Categoría</th><th>Monto</th><th>% del total</th><th style="width:140px">Proporción</th></tr></thead>
+      <tbody>${catExpLabels.slice(0,8).map((c,i)=>`
+        <tr>
+          <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${PALETTE[i%PALETTE.length]};margin-right:8px"></span>${c}</td>
+          <td style="font-family:var(--mono);color:var(--red-text)">${fmt(catExpMap[c])}</td>
+          <td style="font-family:var(--mono);color:var(--text3)">${((catExpMap[c]/totalExp2)*100).toFixed(1)}%</td>
+          <td><div class="cat-bar-wrap"><div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${Math.round((catExpMap[c]/maxCatVal)*100)}%"></div></div></div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  `:'<div class="empty" style="padding:20px"><i class="ti ti-table"></i><p>Sin gastos en este período</p></div>';
+  const sorted=[...txs].sort((a,b)=>b.date>a.date?1:-1);
+  document.getElementById('rep-tx-list').innerHTML=sorted.length?sorted.map(txRow).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos en este período</p></div>';
+}
+
+function exportReportCSV(){
+  const ym=document.getElementById('rep-month').value;
+  const mod=document.getElementById('rep-module').value;
+  let txs=activeTxs(state.transactions);
+  if(mod!=='all')txs=txs.filter(t=>t.module===mod);
+  if(ym!=='all')txs=txs.filter(t=>t.date&&t.date.startsWith(ym));
+  const wb=XLSX.utils.book_new();
+  const headers=['Fecha','Módulo','Tipo','Descripción','Categoría','Monto','Notas'];
+  const rows=txs.map(t=>[t.date,t.module,t.type==='income'?'Ingreso':'Gasto',t.desc,t.category,Number(t.amount||0),t.notes]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers,...rows]),'Reporte');
+  XLSX.writeFile(wb,`finflow_reporte_${ym==='all'?'completo':ym}.xlsx`);
+  showToast('Reporte exportado');
+}
+
+/* ---------- Personal ---------- */
+function renderPersonal(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openTxModal('personal')"><i class="ti ti-plus"></i> Registrar movimiento</button>`;
+  const ym=getThisMonth();
+  const txs=activeTxs(state.transactions).filter(t=>t.module==='personal');
+  const tm=filterMonth(txs,ym);
+  const inc=sum(tm,'income'),exp=sum(tm,'expense');
+  document.getElementById('page-body').innerHTML=`
+    ${renderAccountBar()}
+    <div class="metrics">
+      <div class="metric-card green"><div class="metric-label">Ingresos del mes</div><div class="metric-value green">${fmtShort(inc)}</div></div>
+      <div class="metric-card red"><div class="metric-label">Gastos del mes</div><div class="metric-value red">${fmtShort(exp)}</div></div>
+      <div class="metric-card ${inc-exp>=0?'green':'red'}"><div class="metric-label">Balance</div><div class="metric-value ${inc-exp>=0?'green':'red'}">${inc-exp>=0?'':'-'}${fmtShort(Math.abs(inc-exp))}</div></div>
+      <div class="metric-card blue"><div class="metric-label">Movimientos</div><div class="metric-value blue">${tm.length}</div><div class="metric-sub">Este mes</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="filterTx(this,'all','personal')">Todos</button>
+      <button class="tab" onclick="filterTx(this,'income','personal')">Ingresos</button>
+      <button class="tab" onclick="filterTx(this,'expense','personal')">Gastos</button>
+    </div>
+    <div class="tx-list" id="tx-personal">${txs.length?[...txs].sort((a,b)=>b.date>a.date?1:-1).map(txRow).join(''):'<div class="empty"><i class="ti ti-wallet"></i><p>Sin movimientos. Registra tu primer ingreso o gasto.</p></div>'}</div>
+  `;
+}
+
+/* ---------- Trade ---------- */
+function renderTrade(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openTxModal('trade')"><i class="ti ti-plus"></i> Registrar operación</button>`;
+  const ym=getThisMonth();
+  const txs=activeTxs(state.transactions).filter(t=>t.module==='trade');
+  const tm=filterMonth(txs,ym);
+  const gain=sum(tm,'income'),loss=sum(tm,'expense');
+  const totalCap=txs.filter(t=>t.category==='Depósito').reduce((a,t)=>a+Number(t.amount||0),0)
+               -txs.filter(t=>t.category==='Retiro').reduce((a,t)=>a+Number(t.amount||0),0);
+  document.getElementById('page-body').innerHTML=`
+    ${renderAccountBar()}
+    <div class="metrics">
+      <div class="metric-card green"><div class="metric-label">Ganancias del mes</div><div class="metric-value green">${fmtShort(gain)}</div></div>
+      <div class="metric-card red"><div class="metric-label">Pérdidas del mes</div><div class="metric-value red">${fmtShort(loss)}</div></div>
+      <div class="metric-card ${gain-loss>=0?'green':'red'}"><div class="metric-label">P&L del mes</div><div class="metric-value ${gain-loss>=0?'green':'red'}">${gain-loss>=0?'+':'-'}${fmtShort(Math.abs(gain-loss))}</div></div>
+      <div class="metric-card amber"><div class="metric-label">Capital neto</div><div class="metric-value amber">${fmtShort(totalCap)}</div><div class="metric-sub">Depósitos − Retiros</div></div>
+    </div>
+    <div class="tx-list">${txs.length?[...txs].sort((a,b)=>b.date>a.date?1:-1).map(txRow).join(''):'<div class="empty"><i class="ti ti-trending-up"></i><p>Sin operaciones registradas.</p></div>'}</div>
+  `;
+}
+
+/* ---------- Presupuestos ---------- */
+function renderBudgets(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openBudgetModal()"><i class="ti ti-plus"></i> Nuevo presupuesto</button>`;
+  const ym=getThisMonth();
+  const expTxs=filterMonth(activeTxs(state.transactions).filter(t=>t.type==='expense'),ym);
+  const spentByCat={};
+  expTxs.forEach(t=>{const c=t.category||'Sin categoría';spentByCat[c]=(spentByCat[c]||0)+Number(t.amount||0);});
+  const budgetsThisMonth=state.budgets.filter(b=>b.month===ym);
+  document.getElementById('page-body').innerHTML=`
+    <div class="field-hint" style="margin-bottom:18px">Los presupuestos se calculan sobre los gastos del mes actual (${ym}) en todas las cuentas y módulos.</div>
+    ${budgetsThisMonth.length?budgetsThisMonth.map(b=>{
+      const spent=spentByCat[b.category]||0;
+      const pct=Math.min(100,Math.round((spent/Number(b.limit||1))*100));
+      const over=spent>Number(b.limit);
+      return `<div class="budget-card">
+        <div class="budget-head">
+          <div class="budget-cat">${b.category}</div>
+          <div class="budget-nums">${fmt(spent)} / ${fmt(b.limit)}</div>
+        </div>
+        <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pct}%;background:${over?'var(--red)':pct>80?'var(--amber)':'var(--green)'}"></div></div>
+        <div class="budget-foot">
+          <span>${over?`⚠ Excedido por ${fmt(spent-b.limit)}`:`${100-pct}% disponible`}</span>
+          <button class="icon-btn" onclick="deleteBudget('${b.id}')" style="margin:-6px"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+    }).join(''):'<div class="empty"><i class="ti ti-chart-pie"></i><p>Sin presupuestos definidos para este mes. Crea uno para controlar tus límites de gasto por categoría.</p></div>'}
+  `;
+}
+
+function openBudgetModal(){
+  const ym=getThisMonth();
+  const usedCats=state.budgets.filter(b=>b.month===ym).map(b=>b.category);
+  const availCats=[...CATS_EXPENSE,...CATS_BUSINESS_EXP,...CATS_PURCHASE].filter((c,i,arr)=>arr.indexOf(c)===i&&!usedCats.includes(c));
+  document.getElementById('modal-title').textContent='Nuevo presupuesto';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Categoría</label><select id="f-budget-cat">${availCats.length?availCats.map(c=>`<option>${c}</option>`).join(''):'<option value="">Todas las categorías ya tienen presupuesto</option>'}</select></div>
+    <div class="field"><label>Límite mensual</label><input type="number" id="f-budget-limit" placeholder="0.00" min="0" step="0.01"></div>
+    <div class="field-hint">El presupuesto aplica al mes actual (${ym}) y se reinicia automáticamente cada mes.</div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const category=document.getElementById('f-budget-cat').value;
+    const limit=parseFloat(document.getElementById('f-budget-limit').value);
+    if(!category){showToast('No hay categorías disponibles','error');return;}
+    if(!limit||limit<=0){showToast('Ingresa un límite válido','error');return;}
+    state.budgets.push({id:uid(),category,limit,month:ym});
+    closeModal();showToast('Presupuesto creado');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function deleteBudget(id){state.budgets=state.budgets.filter(b=>b.id!==id);showToast('Presupuesto eliminado');renderPage();scheduleAutosave();}
+
+/* ---------- Metas de ahorro ---------- */
+function renderGoals(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openGoalModal()"><i class="ti ti-plus"></i> Nueva meta</button>`;
+  document.getElementById('page-body').innerHTML=`
+    ${state.goals.length?`<div class="goal-grid">${state.goals.map(goalCard).join('')}</div>`:'<div class="empty"><i class="ti ti-target-arrow"></i><p>Sin metas de ahorro. Crea una para empezar a trackear tu progreso.</p></div>'}
+  `;
+}
+function goalCard(g){
+  const pct=Math.min(100,Math.round((Number(g.current||0)/Number(g.target||1))*100));
+  const done=pct>=100;
+  return `<div class="goal-card">
+    <div class="goal-head">
+      <div><div class="goal-name">${g.name}</div>${g.deadline?`<div class="goal-deadline"><i class="ti ti-calendar" style="font-size:11px"></i> Meta: ${g.deadline}</div>`:''}</div>
+      <button class="icon-btn" onclick="deleteGoal('${g.id}')"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="goal-amt">${fmt(g.current||0)}</div>
+    <div class="goal-target">de ${fmt(g.target)} objetivo · ${pct}%</div>
+    <div class="budget-bar-bg" style="margin-top:8px"><div class="budget-bar-fill" style="width:${pct}%;background:${done?'var(--green)':'var(--blue)'}"></div></div>
+    <div class="goal-actions">
+      <button class="btn" onclick="addToGoal('${g.id}')"><i class="ti ti-plus"></i> Agregar fondos</button>
+      <button class="btn" onclick="editGoal('${g.id}')"><i class="ti ti-pencil"></i> Editar</button>
+    </div>
+  </div>`;
+}
+function openGoalModal(){
+  _editingGoalId=null;
+  document.getElementById('modal-title').textContent='Nueva meta de ahorro';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Nombre de la meta</label><input type="text" id="f-goal-name" placeholder="Ej: Fondo de emergencia, Vacaciones..."></div>
+    <div class="field-row">
+      <div class="field"><label>Monto objetivo</label><input type="number" id="f-goal-target" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="field"><label>Monto inicial (opcional)</label><input type="number" id="f-goal-current" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div class="field"><label>Fecha límite (opcional)</label><input type="date" id="f-goal-deadline"></div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const name=document.getElementById('f-goal-name').value.trim();
+    const target=parseFloat(document.getElementById('f-goal-target').value);
+    if(!name){showToast('Ingresa el nombre de la meta','error');return;}
+    if(!target||target<=0){showToast('Ingresa un monto objetivo válido','error');return;}
+    state.goals.push({id:uid(),name,target,current:parseFloat(document.getElementById('f-goal-current').value)||0,deadline:document.getElementById('f-goal-deadline').value});
+    closeModal();showToast('Meta creada');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function editGoal(id){
+  const g=state.goals.find(x=>x.id===id);if(!g)return;
+  document.getElementById('modal-title').textContent='Editar meta';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Nombre de la meta</label><input type="text" id="f-goal-name" value="${g.name}"></div>
+    <div class="field-row">
+      <div class="field"><label>Monto objetivo</label><input type="number" id="f-goal-target" value="${g.target}" min="0" step="0.01"></div>
+      <div class="field"><label>Monto actual</label><input type="number" id="f-goal-current" value="${g.current||0}" min="0" step="0.01"></div>
+    </div>
+    <div class="field"><label>Fecha límite (opcional)</label><input type="date" id="f-goal-deadline" value="${g.deadline||''}"></div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const name=document.getElementById('f-goal-name').value.trim();
+    const target=parseFloat(document.getElementById('f-goal-target').value);
+    if(!name){showToast('Ingresa el nombre de la meta','error');return;}
+    if(!target||target<=0){showToast('Ingresa un monto objetivo válido','error');return;}
+    g.name=name;g.target=target;g.current=parseFloat(document.getElementById('f-goal-current').value)||0;g.deadline=document.getElementById('f-goal-deadline').value;
+    closeModal();showToast('Meta actualizada');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function addToGoal(id){
+  const g=state.goals.find(x=>x.id===id);if(!g)return;
+  document.getElementById('modal-title').textContent='Agregar fondos a la meta';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field-hint" style="margin-bottom:12px">${g.name} — actualmente ${fmt(g.current||0)} de ${fmt(g.target)}</div>
+    <div class="field"><label>Monto a agregar</label><input type="number" id="f-goal-add" placeholder="0.00" min="0" step="0.01"></div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const add=parseFloat(document.getElementById('f-goal-add').value);
+    if(!add||add<=0){showToast('Ingresa un monto válido','error');return;}
+    g.current=Number(g.current||0)+add;
+    closeModal();showToast('Fondos agregados a la meta');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function deleteGoal(id){state.goals=state.goals.filter(g=>g.id!==id);showToast('Meta eliminada');renderPage();scheduleAutosave();}
+
+/* ---------- Negocio: Ventas y Gastos ---------- */
+function renderBusiness(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openTxModal('business')"><i class="ti ti-plus"></i> Registrar movimiento</button>`;
+  const ym=getThisMonth();
+  const txs=activeTxs(state.transactions).filter(t=>t.module==='business');
+  const tm=filterMonth(txs,ym);
+  const inc=sum(tm,'income'),exp=sum(tm,'expense');
+  document.getElementById('page-body').innerHTML=`
+    ${renderAccountBar()}
+    <div class="metrics">
+      <div class="metric-card green"><div class="metric-label">Ventas del mes</div><div class="metric-value green">${fmtShort(inc)}</div></div>
+      <div class="metric-card red"><div class="metric-label">Gastos del mes</div><div class="metric-value red">${fmtShort(exp)}</div></div>
+      <div class="metric-card ${inc-exp>=0?'green':'red'}"><div class="metric-label">Utilidad</div><div class="metric-value ${inc-exp>=0?'green':'red'}">${inc-exp>=0?'':'-'}${fmtShort(Math.abs(inc-exp))}</div></div>
+      <div class="metric-card blue"><div class="metric-label">Operaciones</div><div class="metric-value blue">${txs.length}</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="filterTx(this,'all','business')">Todos</button>
+      <button class="tab" onclick="filterTx(this,'income','business')">Ventas</button>
+      <button class="tab" onclick="filterTx(this,'expense','business')">Gastos</button>
+    </div>
+    <div class="tx-list" id="tx-business">${txs.length?[...txs].sort((a,b)=>b.date>a.date?1:-1).map(txRow).join(''):'<div class="empty"><i class="ti ti-building-store"></i><p>Sin operaciones registradas.</p></div>'}</div>
+  `;
+}
+
+/* ---------- Compras (nuevo módulo) ---------- */
+function renderPurchases(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openTxModal('purchases')"><i class="ti ti-plus"></i> Registrar compra</button>`;
+  const ym=getThisMonth();
+  const txs=activeTxs(state.transactions).filter(t=>t.module==='purchases');
+  const tm=filterMonth(txs,ym);
+  const total=sum(tm,'expense');
+  document.getElementById('page-body').innerHTML=`
+    ${renderAccountBar()}
+    <div class="metrics">
+      <div class="metric-card red"><div class="metric-label">Comprado este mes</div><div class="metric-value red">${fmtShort(total)}</div></div>
+      <div class="metric-card blue"><div class="metric-label">Compras registradas</div><div class="metric-value blue">${txs.length}</div></div>
+      <div class="metric-card amber"><div class="metric-label">Vinculadas a inventario</div><div class="metric-value amber">${txs.filter(t=>t.linkInv).length}</div><div class="metric-sub">Suman stock automáticamente</div></div>
+    </div>
+    <div class="tx-list">${txs.length?[...txs].sort((a,b)=>b.date>a.date?1:-1).map(txRow).join(''):'<div class="empty"><i class="ti ti-shopping-cart"></i><p>Sin compras registradas. Registra compras de insumos o mercancía aquí, separado de los gastos operativos.</p></div>'}</div>
+  `;
+}
+
+/* ---------- Inventario ---------- */
+function renderInventory(){
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn success" onclick="openInvModal()"><i class="ti ti-plus"></i> Agregar producto</button>`;
+  const inv=state.inventory;
+  document.getElementById('page-body').innerHTML=`
+    <div class="metrics">
+      <div class="metric-card blue"><div class="metric-label">Productos</div><div class="metric-value blue">${inv.length}</div></div>
+      <div class="metric-card amber"><div class="metric-label">Valor total</div><div class="metric-value amber">${fmtShort(inv.reduce((a,i)=>a+Number(i.price||0)*Number(i.stock||0),0))}</div></div>
+      <div class="metric-card red"><div class="metric-label">Stock crítico</div><div class="metric-value red">${inv.filter(i=>Number(i.stock)<=Number(i.minStock||0)).length}</div><div class="metric-sub">Bajo mínimo</div></div>
+      <div class="metric-card green"><div class="metric-label">Unidades totales</div><div class="metric-value green">${inv.reduce((a,i)=>a+Number(i.stock||0),0)}</div></div>
+    </div>
+    ${inv.length?`<div class="inv-grid">${inv.map(invCard).join('')}</div>`:'<div class="empty"><i class="ti ti-package"></i><p>Sin productos. Agrega tu primer artículo al inventario.</p></div>'}
+  `;
+}
+
+/* ---------- Configuración (nuevo) ---------- */
+function renderSettings(){
+  document.getElementById('page-body').innerHTML=`
+    <div class="section-header"><div class="section-title">Vínculo ventas ↔ inventario</div></div>
+    <div class="field-toggle" style="margin-bottom:24px">
+      <div>
+        <div class="field-toggle-label">Descontar stock automáticamente al vender</div>
+        <div class="field-toggle-sub">Cuando registres una venta vinculada a un producto, su stock se reduce solo. Puedes desactivarlo si prefieres llevar el inventario por separado.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="cfg-link-inv" ${state.settings.linkSalesToInventory?'checked':''} onchange="toggleLinkSetting()"><span class="switch-slider"></span></label>
+    </div>
+
+    <div class="section-header"><div class="section-title">Cuentas</div><button class="btn success" onclick="openAccountModal()"><i class="ti ti-plus"></i> Nueva cuenta</button></div>
+    <div class="tx-list" style="margin-bottom:24px">
+      ${state.accounts.map(a=>`<div class="tx-item">
+        <div class="tx-icon income"><i class="ti ti-building-bank"></i></div>
+        <div class="tx-info"><div class="tx-desc">${a.name}</div><div class="tx-meta">${a.id===state.activeAccount?'Cuenta activa':'Inactiva'}</div></div>
+        ${state.accounts.length>1?`<div class="tx-actions" style="opacity:1"><button class="icon-btn" onclick="deleteAccount('${a.id}')"><i class="ti ti-trash"></i></button></div>`:''}
+      </div>`).join('')}
+    </div>
+
+    <div class="section-header"><div class="section-title">Respaldo y almacenamiento</div></div>
+    <div class="field-hint" style="margin-bottom:10px;line-height:1.6">
+      <b style="color:var(--text)">Autoguardado local:</b> cada cambio se guarda automáticamente en este navegador (localStorage) como respaldo. Esto NO sustituye al Excel — si limpias el navegador o cambias de equipo, este respaldo se pierde.<br><br>
+      <b style="color:var(--text)">Exportar a Excel:</b> es tu copia portátil y permanente. Tu archivo Excel es siempre la fuente de verdad para mover datos entre equipos.
+    </div>
+    <button class="btn" onclick="clearAutosaveConfirm()" style="border-color:var(--red);color:var(--red-text)"><i class="ti ti-trash"></i> Borrar respaldo local de este navegador</button>
+  `;
+}
+function toggleLinkSetting(){
+  state.settings.linkSalesToInventory=document.getElementById('cfg-link-inv').checked;
+  showToast(state.settings.linkSalesToInventory?'Vínculo activado: las ventas descontarán stock':'Vínculo desactivado: ventas e inventario son independientes');
+  scheduleAutosave();
+}
+function clearAutosaveConfirm(){
+  if(confirm('¿Borrar el respaldo guardado en este navegador? Tu archivo Excel no se verá afectado.')){
+    clearAutosave();
+    showToast('Respaldo local borrado');
+  }
+}
+function openAccountModal(){
+  document.getElementById('modal-title').textContent='Nueva cuenta';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Nombre de la cuenta</label><input type="text" id="f-acc-name" placeholder="Ej: Personal, Negocio, Ahorros..."></div>
+    <div class="field-hint">Cada cuenta tiene sus propios movimientos. Útil para separar finanzas personales de un negocio, o distintos negocios entre sí.</div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const name=document.getElementById('f-acc-name').value.trim();
+    if(!name){showToast('Ingresa un nombre','error');return;}
+    state.accounts.push({id:uid(),name});
+    closeModal();showToast('Cuenta creada');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function deleteAccount(id){
+  if(state.accounts.length<=1)return;
+  if(!confirm('¿Eliminar esta cuenta? Sus movimientos quedarán sin cuenta asignada (no se borran).'))return;
+  state.accounts=state.accounts.filter(a=>a.id!==id);
+  if(state.activeAccount===id)state.activeAccount=state.accounts[0].id;
+  showToast('Cuenta eliminada');renderPage();scheduleAutosave();
+}
+
+/* ---------- Render helpers compartidos ---------- */
+function txRow(t){
+  const isPos=t.type==='income';
+  const iconMap={personal:{income:'ti-arrow-down-left',expense:'ti-arrow-up-right'},business:{income:'ti-building-store',expense:'ti-shopping-cart'},purchases:{expense:'ti-truck-delivery'},trade:{income:'ti-trending-up',expense:'ti-trending-down'}};
+  const icon=(iconMap[t.module]||{})[t.type]||'ti-circle';
+  const modTag={personal:'tag-personal personal',business:'tag-negocio negocio',purchases:'tag-negocio negocio',trade:'tag-trade trade'}[t.module]||'';
+  const modLabel={personal:'personal',business:'negocio',purchases:'compras',trade:'trading'}[t.module]||t.module;
+  const invTag=t.linkInv?` · <i class="ti ti-link" style="font-size:10px"></i> stock vinculado`:'';
+  return `<div class="tx-item">
+    <div class="tx-icon ${t.module==='trade'?'trade':isPos?'income':'expense'}"><i class="ti ${icon}"></i></div>
+    <div class="tx-info">
+      <div class="tx-desc">${t.desc||'Sin descripción'}</div>
+      <div class="tx-meta"><span class="tx-tag ${modTag}">${modLabel}</span>${t.category||''}${invTag}</div>
+    </div>
+    <div>
+      <div class="tx-amount ${isPos?'pos':'neg'}">${isPos?'+':'-'}${fmt(t.amount)}</div>
+      <div class="tx-date">${t.date||''}</div>
+    </div>
+    <div class="tx-actions">
+      <button class="icon-btn edit" onclick="editTx('${t.id}')"><i class="ti ti-pencil"></i></button>
+      <button class="icon-btn" onclick="deleteTx('${t.id}')"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>`;
+}
+
+function invCard(item){
+  const low=Number(item.stock)<=Number(item.minStock||0);
+  return `<div class="inv-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div class="inv-name">${item.name}</div>
+    </div>
+    <div class="inv-stock ${low?'low':'ok'}">${item.stock}<span style="font-size:12px;font-weight:400;color:var(--text3);margin-left:4px">${item.unit||'uds'}</span></div>
+    <div class="inv-meta">${low?'⚠ Stock bajo':'Stock OK'} · Mín: ${item.minStock||0}</div>
+    <div class="inv-price">${fmt(item.price||0)} / ${item.unit||'ud'}</div>
+    <div class="inv-card-actions">
+      <button class="icon-btn edit" onclick="editInv('${item.id}')"><i class="ti ti-pencil"></i></button>
+      <button class="icon-btn" onclick="deleteInv('${item.id}')"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>`;
+}
+
+function filterTx(btn,type,module){
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const list=document.getElementById(`tx-${module}`);
+  const txs=activeTxs(state.transactions).filter(t=>t.module===module&&(type==='all'||t.type===type));
+  list.innerHTML=txs.length?[...txs].sort((a,b)=>b.date>a.date?1:-1).map(txRow).join(''):`<div class="empty"><i class="ti ti-inbox"></i><p>Sin resultados</p></div>`;
+}
+
+/* ---------- Modal: Transacciones (crear / editar) ---------- */
+function openTxModal(module,editId){
+  _editingTxId=editId||null;
+  const existing=editId?state.transactions.find(t=>t.id===editId):null;
+  const isTrade=module==='trade';
+  const isBusiness=module==='business';
+  const isPurchase=module==='purchases';
+  let cats;
+  if(isTrade)cats=CATS_TRADE;
+  else if(module==='personal')cats=[...CATS_INCOME,...CATS_EXPENSE];
+  else if(isBusiness)cats=[...CATS_BUSINESS_SALE,...CATS_BUSINESS_EXP];
+  else if(isPurchase)cats=CATS_PURCHASE;
+  const today=new Date().toISOString().slice(0,10);
+  const showInvLink=(isBusiness||isPurchase)&&state.inventory.length>0;
+  const invOptions=state.inventory.map(i=>`<option value="${i.id}">${i.name} (stock: ${i.stock} ${i.unit||'uds'})</option>`).join('');
+
+  document.getElementById('modal-title').textContent=editId?'Editar movimiento':'Registrar movimiento';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Tipo</label>
+      <select id="f-type">${isTrade?`<option value="income">Ganancia / Ingreso</option><option value="expense">Pérdida / Egreso</option>`:isPurchase?`<option value="expense">Compra (gasto)</option>`:`<option value="income">${isBusiness?'Venta':'Ingreso'}</option><option value="expense">Gasto</option>`}</select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Monto</label><input type="number" id="f-amount" placeholder="0.00" min="0" step="0.01" value="${existing?existing.amount:''}"></div>
+      <div class="field"><label>Fecha</label><input type="date" id="f-date" value="${existing?existing.date:today}"></div>
+    </div>
+    <div class="field"><label>Descripción</label><input type="text" id="f-desc" placeholder="Ej: Pago de nómina, Compra supermercado..." value="${existing?(existing.desc||'').replace(/"/g,'&quot;'):''}"></div>
+    <div class="field"><label>Categoría</label><select id="f-cat">${cats.map(c=>`<option ${existing&&existing.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    ${state.accounts.length>1?`<div class="field"><label>Cuenta</label><select id="f-account">${state.accounts.map(a=>`<option value="${a.id}" ${(existing?existing.accountId:state.activeAccount)===a.id?'selected':''}>${a.name}</option>`).join('')}</select></div>`:''}
+    ${showInvLink?`
+      <div class="field-toggle">
+        <div>
+          <div class="field-toggle-label">${isPurchase?'Sumar al stock de un producto':'Descontar stock de un producto'}</div>
+          <div class="field-toggle-sub">${isPurchase?'Esta compra aumentará el inventario del producto elegido':'Esta venta reducirá el inventario del producto elegido'}</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="f-link-inv" ${existing&&existing.linkInv?'checked':(!existing&&state.settings.linkSalesToInventory&&isBusiness?'checked':'')} onchange="document.getElementById('f-inv-fields').classList.toggle('hidden',!this.checked)"><span class="switch-slider"></span></label>
+      </div>
+      <div id="f-inv-fields" class="${(existing&&existing.linkInv)||(!existing&&state.settings.linkSalesToInventory&&isBusiness)?'':'hidden'}">
+        <div class="field-row">
+          <div class="field"><label>Producto</label><select id="f-inv-product">${invOptions}</select></div>
+          <div class="field"><label>Cantidad</label><input type="number" id="f-inv-qty" min="1" step="1" value="${existing?existing.invQty||1:1}"></div>
+        </div>
+      </div>
+    `:''}
+    <div class="field"><label>Notas (opcional)</label><textarea id="f-notes" placeholder="Información adicional...">${existing?(existing.notes||''):''}</textarea></div>
+  `;
+  if(existing&&showInvLink&&existing.invId){
+    setTimeout(()=>{const sel=document.getElementById('f-inv-product');if(sel)sel.value=existing.invId;},0);
+  }
+  document.getElementById('modal-confirm').onclick=()=>{
+    const amount=parseFloat(document.getElementById('f-amount').value);
+    if(!amount||amount<=0){showToast('Ingresa un monto válido','error');return;}
+    const desc=document.getElementById('f-desc').value;
+    const linkInv=showInvLink&&document.getElementById('f-link-inv').checked;
+    const invId=linkInv?document.getElementById('f-inv-product').value:null;
+    const invQty=linkInv?(parseFloat(document.getElementById('f-inv-qty').value)||1):0;
+
+    if(linkInv&&!invId){showToast('Selecciona un producto para vincular','error');return;}
+    if(linkInv&&isBusiness){
+      const prod=state.inventory.find(i=>i.id===invId);
+      const prevQty=existing&&existing.invId===invId?Number(existing.invQty||0):0;
+      const availableStock=Number(prod.stock)+prevQty;
+      if(invQty>availableStock){showToast(`Stock insuficiente: solo hay ${availableStock} ${prod.unit||'uds'} disponibles`,'error');return;}
+    }
+
+    // revertir efecto de inventario de la transacción anterior si se está editando
+    if(existing&&existing.linkInv&&existing.invId){
+      const prevProd=state.inventory.find(i=>i.id===existing.invId);
+      if(prevProd){
+        if(existing.module==='business')prevProd.stock=Number(prevProd.stock)+Number(existing.invQty||0);
+        else if(existing.module==='purchases')prevProd.stock=Number(prevProd.stock)-Number(existing.invQty||0);
+      }
+    }
+
+    const payload={
+      module,
+      type:document.getElementById('f-type').value,
+      amount,date:document.getElementById('f-date').value,
+      desc,category:document.getElementById('f-cat').value,
+      notes:document.getElementById('f-notes').value,
+      accountId:state.accounts.length>1?document.getElementById('f-account').value:state.activeAccount,
+      linkInv,invId:invId||null,invQty:linkInv?invQty:0
+    };
+
+    if(existing){
+      Object.assign(existing,payload);
+    }else{
+      state.transactions.push(Object.assign({id:uid()},payload));
+    }
+
+    // aplicar efecto de inventario nuevo
+    if(linkInv&&invId){
+      const prod=state.inventory.find(i=>i.id===invId);
+      if(prod){
+        if(module==='business')prod.stock=Number(prod.stock)-invQty;
+        else if(module==='purchases')prod.stock=Number(prod.stock)+invQty;
+      }
+    }
+
+    closeModal();
+    showToast(existing?'Movimiento actualizado':(linkInv?'Movimiento registrado y stock actualizado':'Movimiento registrado'));
+    renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function editTx(id){
+  const t=state.transactions.find(x=>x.id===id);
+  if(!t)return;
+  openTxModal(t.module,id);
+}
+
+function deleteTx(id){
+  const t=state.transactions.find(x=>x.id===id);
+  if(t&&t.linkInv&&t.invId){
+    if(!confirm('Este movimiento está vinculado al inventario. Al eliminarlo se revertirá el efecto de stock. ¿Continuar?'))return;
+    const prod=state.inventory.find(i=>i.id===t.invId);
+    if(prod){
+      if(t.module==='business')prod.stock=Number(prod.stock)+Number(t.invQty||0);
+      else if(t.module==='purchases')prod.stock=Number(prod.stock)-Number(t.invQty||0);
+    }
+  }
+  state.transactions=state.transactions.filter(x=>x.id!==id);
+  showToast('Eliminado');renderPage();scheduleAutosave();
+}
+
+/* ---------- Modal: Inventario (crear / editar) ---------- */
+function openInvModal(editId){
+  _editingInvId=editId||null;
+  const existing=editId?state.inventory.find(i=>i.id===editId):null;
+  document.getElementById('modal-title').textContent=editId?'Editar producto':'Agregar producto';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="field"><label>Nombre del producto</label><input type="text" id="f-name" placeholder="Ej: Camiseta talla M" value="${existing?existing.name.replace(/"/g,'&quot;'):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>Stock actual</label><input type="number" id="f-stock" placeholder="0" min="0" value="${existing?existing.stock:''}"></div>
+      <div class="field"><label>Stock mínimo</label><input type="number" id="f-min" placeholder="0" min="0" value="${existing?existing.minStock:''}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Precio unitario</label><input type="number" id="f-price" placeholder="0.00" min="0" step="0.01" value="${existing?existing.price:''}"></div>
+      <div class="field"><label>Unidad</label><input type="text" id="f-unit" placeholder="uds, kg, lt..." value="${existing?existing.unit:''}"></div>
+    </div>
+    <div class="field"><label>Descripción (opcional)</label><input type="text" id="f-inv-desc" value="${existing?(existing.desc||''):''}" placeholder="Detalle adicional"></div>
+  `;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const name=document.getElementById('f-name').value.trim();
+    if(!name){showToast('Ingresa el nombre del producto','error');return;}
+    const payload={
+      name,
+      stock:parseFloat(document.getElementById('f-stock').value)||0,
+      minStock:parseFloat(document.getElementById('f-min').value)||0,
+      price:parseFloat(document.getElementById('f-price').value)||0,
+      unit:document.getElementById('f-unit').value||'uds',
+      desc:document.getElementById('f-inv-desc').value
+    };
+    if(existing){Object.assign(existing,payload);}
+    else{state.inventory.push(Object.assign({id:uid()},payload));}
+    closeModal();showToast(existing?'Producto actualizado':'Producto agregado');renderPage();scheduleAutosave();
+  };
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function editInv(id){openInvModal(id);}
+function deleteInv(id){
+  const linked=state.transactions.some(t=>t.invId===id&&t.linkInv);
+  if(linked&&!confirm('Este producto tiene movimientos vinculados. Si lo eliminas, esos movimientos quedarán sin vínculo (no se borran). ¿Continuar?'))return;
+  state.inventory=state.inventory.filter(i=>i.id!==id);
+  state.transactions.forEach(t=>{if(t.invId===id){t.linkInv=false;t.invId=null;}});
+  showToast('Eliminado');renderPage();scheduleAutosave();
+}
+
+/* ---------- Modal genérico ---------- */
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');}
+
+function showToast(msg,type='success'){
+  const el=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  el.className=`toast show ${type}`;
+  el.querySelector('i').className=type==='error'?'ti ti-alert-circle':type==='info'?'ti ti-info-circle':'ti ti-circle-check';
+  setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+/* ---------- Archivo: nuevo / exportar / importar ---------- */
+function newFile(){
+  const hasData=state.transactions.length>0||state.inventory.length>0;
+  if(hasData&&!confirm('¿Crear nuevo archivo? Los datos no exportados a Excel se perderán (el respaldo local también se reiniciará).'))return;
+  state=defaultState();
+  state.fileName='mis_finanzas.xlsx';
+  state.currentPage='dashboard';
+  clearAutosave();
+  document.getElementById('file-badge').textContent=state.fileName;
+  navigate('dashboard');showToast('Archivo nuevo creado');
+}
+
+function exportExcel(){
+  if(!state.fileName){showToast('Primero crea o carga un archivo','error');return;}
+  const wb=XLSX.utils.book_new();
+  const txH=['id','module','type','amount','date','desc','category','notes','accountId','linkInv','invId','invQty'];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([txH,...state.transactions.map(t=>txH.map(h=>t[h]===undefined||t[h]===null?'':t[h]))]),'Transacciones');
+  const invH=['id','name','stock','minStock','price','unit','desc'];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([invH,...state.inventory.map(i=>invH.map(h=>i[h]===undefined||i[h]===null?'':i[h]))]),'Inventario');
+  const budH=['id','category','limit','month'];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([budH,...state.budgets.map(b=>budH.map(h=>b[h]===undefined?'':b[h]))]),'Presupuestos');
+  const goalH=['id','name','target','current','deadline'];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([goalH,...state.goals.map(g=>goalH.map(h=>g[h]===undefined?'':g[h]))]),'Metas');
+  const accH=['id','name'];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([accH,...state.accounts.map(a=>accH.map(h=>a[h]))]),'Cuentas');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+    ['FinFlow Export'],['Versión','2.0'],['Fecha',new Date().toLocaleString('es')],
+    ['Transacciones',state.transactions.length],['Inventario',state.inventory.length],
+    ['Presupuestos',state.budgets.length],['Metas',state.goals.length],
+    ['Vínculo ventas-inventario',state.settings.linkSalesToInventory?'Activado':'Desactivado']
+  ]),'Info');
+  XLSX.writeFile(wb,state.fileName);
+  state.settings.lastSavedExcelAt=new Date().toISOString();
+  scheduleAutosave();
+  showToast('Archivo Excel exportado correctamente');
+}
+
+function importExcel(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const txSheet=wb.Sheets['Transacciones'];
+      if(!txSheet){showToast('Archivo no compatible con FinFlow','error');return;}
+      const sheetToObjs=(sheet)=>{
+        if(!sheet)return[];
+        const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+        const h=rows[0]||[];
+        return rows.slice(1).filter(r=>r.length>1).map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]===undefined?'':r[i]);return o;});
+      };
+      const newState=defaultState();
+      newState.transactions=sheetToObjs(txSheet).map(t=>({...t,amount:Number(t.amount)||0,linkInv:t.linkInv===true||t.linkInv==='true'||t.linkInv===1,invQty:Number(t.invQty)||0}));
+      newState.inventory=sheetToObjs(wb.Sheets['Inventario']).map(i=>({...i,stock:Number(i.stock)||0,minStock:Number(i.minStock)||0,price:Number(i.price)||0}));
+      newState.budgets=sheetToObjs(wb.Sheets['Presupuestos']).map(b=>({...b,limit:Number(b.limit)||0}));
+      newState.goals=sheetToObjs(wb.Sheets['Metas']).map(g=>({...g,target:Number(g.target)||0,current:Number(g.current)||0}));
+      const accs=sheetToObjs(wb.Sheets['Cuentas']);
+      newState.accounts=accs.length?accs:defaultState().accounts;
+      newState.activeAccount=newState.accounts[0].id;
+      newState.fileName=file.name;
+      newState.currentPage='dashboard';
+      state=newState;
+      document.getElementById('file-badge').textContent=file.name;
+      navigate('dashboard');
+      showToast(`Cargado: ${state.transactions.length} movimientos, ${state.inventory.length} productos`);
+    }catch(err){showToast('Error al leer el archivo','error');}
+  };
+  reader.readAsArrayBuffer(file);e.target.value='';
+}
+
+/* ---------- Init ---------- */
+renderWelcome();
+setSaveDot('unsynced','Sin guardar');
+
+</script>
+</body>
+</html>
