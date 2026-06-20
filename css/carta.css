@@ -1,0 +1,645 @@
+
+/* ============================================================
+   CARTA DEL DÍA — estilos
+   ============================================================ */
+
+/* --- Nombre del negocio --- */
+.carta-business-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg2);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.carta-business-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  min-width: 160px;
+}
+.carta-business-input-wrap { flex: 1; min-width: 200px; }
+.carta-business-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color .15s;
+}
+.carta-business-input:focus { border-color: var(--green); }
+.carta-business-hint {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+/* --- Stats del día --- */
+.carta-day-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.carta-stat { display: flex; align-items: baseline; gap: 5px; }
+.carta-stat-val { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.carta-stat-val.green { color: var(--green); }
+.carta-stat-val.amber { color: var(--amber); }
+.carta-stat-label { font-size: 11px; color: var(--text3); }
+
+/* --- Grid de productos (catálogo) --- */
+.carta-prod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.carta-prod-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color .15s;
+  position: relative;
+}
+.carta-prod-card:hover { border-color: var(--border2); }
+.carta-prod-emoji { font-size: 28px; line-height: 1; margin-bottom: 4px; }
+.carta-prod-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.carta-prod-price { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--green); }
+.carta-prod-cost { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.carta-prod-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.carta-prod-btn {
+  flex: 1;
+  padding: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+}
+.carta-prod-btn.edit:hover { background: var(--blue-dim); color: var(--blue-text); border-color: var(--blue); }
+.carta-prod-btn.del:hover { background: var(--red-dim); color: var(--red-text); border-color: var(--red); }
+
+/* --- Emoji picker --- */
+.carta-emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.carta-emoji-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  border: 1.5px solid transparent;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .1s;
+  line-height: 1;
+}
+.carta-emoji-btn:hover { background: var(--bg4); border-color: var(--border2); }
+.carta-emoji-btn.sel { background: var(--green-dim); border-color: var(--green); }
+
+/* ============================================================
+   VISTA DE VENTA TÁCTIL
+   ============================================================ */
+.carta-sell-wrap {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  min-height: calc(100vh - 180px);
+  align-items: start;
+}
+.carta-sell-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.carta-sell-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 500;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+}
+.carta-sell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+/* Botones de producto táctiles */
+.carta-sell-btn {
+  position: relative;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 12px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all .12s;
+  min-height: 110px;
+  font-family: var(--font);
+  text-align: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.carta-sell-btn:hover { background: var(--bg3); border-color: var(--border2); transform: scale(1.02); }
+.carta-sell-btn:active { transform: scale(0.97); }
+.carta-sell-btn.active {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+  box-shadow: 0 0 0 1px var(--amber);
+}
+
+/* Badge de cantidad (esquina superior derecha) */
+.carta-sell-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 24px;
+  height: 24px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all .15s cubic-bezier(.175,.885,.32,1.275);
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  pointer-events: none;
+}
+.carta-sell-badge.show {
+  opacity: 1;
+  transform: scale(1);
+}
+.carta-sell-emoji {
+  font-size: 32px;
+  line-height: 1;
+}
+.carta-sell-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carta-sell-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* Panel derecho — carrito */
+.carta-sell-right {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: sticky;
+  top: 80px;
+  overflow: hidden;
+}
+.carta-sell-right-header {
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  background: var(--bg3);
+}
+.carta-cart-list {
+  flex: 1;
+  min-height: 200px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.carta-cart-empty {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--text3);
+  font-size: 13px;
+}
+.carta-cart-empty i { font-size: 28px; display: block; margin-bottom: 8px; opacity: .4; }
+.carta-cart-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.carta-cart-item:last-child { border-bottom: none; }
+.carta-cart-item:hover { background: var(--bg3); }
+.carta-cart-emoji { font-size: 18px; flex-shrink: 0; }
+.carta-cart-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.carta-cart-qty-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.carta-qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all .12s;
+}
+.carta-qty-btn:hover { background: var(--bg4); color: var(--text); }
+.carta-qty-btn.minus:hover { background: var(--red-dim); color: var(--red-text); border-color: var(--red); }
+.carta-qty-btn.plus:hover { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+.carta-cart-qty {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+  color: var(--text);
+}
+.carta-cart-subtotal {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  flex-shrink: 0;
+  min-width: 52px;
+  text-align: right;
+}
+
+/* Total del carrito */
+.carta-cart-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-top: 2px solid var(--border2);
+  background: var(--bg3);
+}
+.carta-cart-total-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.carta-cart-total-val {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* Botón de confirmar pedido */
+.carta-confirm-btn {
+  margin: 12px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: linear-gradient(135deg, var(--green), #2E8FE0);
+  color: #06140F;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .15s;
+  min-height: 52px;
+}
+.carta-confirm-btn:hover:not(.disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(77,171,247,.3); }
+.carta-confirm-btn.disabled {
+  background: var(--bg4);
+  color: var(--text3);
+  cursor: not-allowed;
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   FACTURA
+   ============================================================ */
+.carta-invoice-wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px;
+}
+.carta-invoice-card {
+  background: linear-gradient(160deg, #1C2128, #161B22);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.carta-inv-header {
+  background: linear-gradient(135deg, var(--green-dim), #0A1F14);
+  border-bottom: 1px solid rgba(77,171,247,.2);
+  padding: 24px 24px 20px;
+}
+.carta-inv-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.carta-inv-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--green);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #06140F;
+  flex-shrink: 0;
+}
+.carta-inv-biz-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.3px;
+}
+.carta-inv-sub {
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.carta-inv-meta-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.carta-inv-meta-item {
+  font-size: 12px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+}
+.carta-inv-meta-item i { font-size: 13px; }
+
+/* Tabla de ítems */
+.carta-inv-body {
+  padding: 16px 0;
+}
+.carta-inv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.carta-inv-table thead th {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 6px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.carta-inv-table thead th:last-child { text-align: right; }
+.inv-item-row { border-bottom: 1px solid rgba(48,54,61,.5); }
+.inv-item-row:last-child { border-bottom: none; }
+.inv-item-emoji { padding: 10px 8px 10px 16px; font-size: 18px; width: 36px; }
+.inv-item-name { padding: 10px 8px; font-size: 13px; font-weight: 500; color: var(--text); }
+.inv-item-qty { padding: 10px 8px; font-size: 12px; color: var(--text3); font-family: var(--mono); white-space: nowrap; }
+.inv-item-price { padding: 10px 8px; font-size: 12px; color: var(--text2); font-family: var(--mono); }
+.inv-item-sub { padding: 10px 16px 10px 8px; font-size: 13px; font-weight: 600; color: var(--green); font-family: var(--mono); text-align: right; }
+
+/* Footer de la factura */
+.carta-inv-footer {
+  border-top: 2px solid var(--border2);
+  background: var(--bg3);
+  padding: 20px 24px;
+  text-align: center;
+}
+.carta-inv-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.carta-inv-total-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.carta-inv-total-val {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: -1px;
+}
+.carta-inv-thanks {
+  font-size: 14px;
+  color: var(--text2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.carta-inv-powered {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+/* Acciones debajo de la factura */
+.carta-invoice-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.carta-invoice-actions .w-btn {
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+  padding: 12px 18px;
+  font-size: 13px;
+}
+
+/* ============================================================
+   MODAL: GANANCIAS
+   ============================================================ */
+.carta-profit-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.carta-profit-stat {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  text-align: center;
+}
+.carta-profit-stat.green { border-color: var(--green); }
+.carta-profit-stat.red { border-color: var(--red); }
+.carta-profit-stat.amber { border-color: var(--amber); }
+.carta-profit-stat-val {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.carta-profit-stat.green .carta-profit-stat-val { color: var(--green); }
+.carta-profit-stat.red .carta-profit-stat-val { color: var(--red); }
+.carta-profit-stat.amber .carta-profit-stat-val { color: var(--amber); }
+.carta-profit-stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+
+.carta-profit-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.carta-profit-warning i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+.carta-profit-list { display: flex; flex-direction: column; gap: 4px; }
+.carta-profit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text2);
+}
+.carta-profit-footer {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ============================================================
+   RESPONSIVE — tablet / móvil (modo operación)
+   ============================================================ */
+@media (max-width: 860px) {
+  .carta-sell-wrap {
+    grid-template-columns: 1fr;
+  }
+  .carta-sell-right {
+    position: static;
+    order: -1;
+  }
+  .carta-sell-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .carta-sell-btn {
+    min-height: 96px;
+    padding: 12px 8px 10px;
+  }
+  .carta-sell-emoji { font-size: 26px; }
+  .carta-sell-name { font-size: 11px; max-width: 96px; }
+  .carta-cart-list { max-height: 220px; }
+  .carta-profit-stats { grid-template-columns: 1fr; }
+  .carta-invoice-actions { flex-direction: column; }
+  .carta-invoice-actions .w-btn { min-width: unset; }
+  .carta-inv-total-val { font-size: 26px; }
+}
+
+@media (max-width: 500px) {
+  .carta-sell-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .carta-prod-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
