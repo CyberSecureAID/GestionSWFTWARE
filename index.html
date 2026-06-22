@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FinFlow — Carta del día</title>
+<link rel="icon" type="image/png" href="assets/favicon.png?v=2">
+<link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/carta.css">
+<!-- html2canvas para descarga de factura como imagen -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+<button class="mobile-nav-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-backdrop').classList.toggle('show')"><i class="ti ti-menu-2"></i></button>
+<div class="sidebar-backdrop" onclick="this.classList.remove('show');document.querySelector('.sidebar').classList.remove('open')"></div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img class="logo-img" src="assets/logo.png" alt="FinFlow">
+      <div class="save-status" id="save-status"><span class="save-dot" id="save-dot"></span><span id="save-text">Sin guardar</span></div>
+    </div>
+    <nav class="nav" id="sidebar-nav">
+      <!-- Generado dinámicamente por renderSidebarNav() -->
+    </nav>
+  </aside>
+  <main class="main">
+    <div id="page-content"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<div class="overlay hidden" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Formulario</span>
+      <button class="icon-btn" onclick="closeModal()" style="font-size:18px;color:var(--text2)"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="modal-confirm">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="help-popover-overlay hidden" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-popover">
+    <div class="help-popover-head">
+      <div class="help-popover-icon"><i class="ti ti-help" id="help-icon"></i></div>
+      <div class="help-popover-title" id="help-title"></div>
+    </div>
+    <div class="help-popover-body" id="help-body"></div>
+    <button class="help-popover-close" onclick="closeHelp()">Entendido</button>
+  </div>
+</div>
+
+<script src="js/constants.js?v=5"></script>
+<script src="js/state.js?v=5"></script>
+<script src="js/router.js?v=5"></script>
+<script src="js/settings.js?v=5"></script>
+<script src="js/modal.js?v=5"></script>
+<script src="js/carta.js?v=4"></script>
+<script src="js/main.js?v=5"></script>
+</body>
+</html>
